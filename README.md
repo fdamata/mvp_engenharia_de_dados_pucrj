@@ -53,13 +53,13 @@ Fluxo de Dados (Pipeline)
 
 O processo de ingestão e persistência segue um padrão Flat, adaptado para o contexto:
 
-┌─────────────────────────────────────────────────────────────────┐
-│                         FLUXO DE DADOS                          │
-└─────────────────────────────────────────────────────────────────┘
+    ┌─────────────────────────┐
+    │     FLUXO DE DADOS      │
+    └─────────────────────────┘
 
-    ┌─────────────────┐
-    │     Base ONS    │  ← Fonte de Dados Externa
-    └────────┬────────┘
+    ┌─────────────────────────┐
+    │         Base ONS        │  ← Fonte de Dados Externa
+    └────────┬────────────────┘
              │ [1. EXTRAÇÃO]
              │ • Coleta via Download
              │ • Dados brutos
