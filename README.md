@@ -92,13 +92,13 @@ O processo de ingestão e persistência segue um padrão Flat, adaptado para o c
 
 ✅ Pergunta 1: Qual o perfil de usinas e combustíveis foram desativadas após 2000?
 
-    ![](path)
-    ![](path)
-    ![](path)
-    ![](path)
-    ![](path)
-    ![](path)
 
+![ONS Q&A - Pergunta 1](img/ons4_Q&A.1.png)
+![ONS Q&A - Pergunta 1](img/ons4_Q&A.2.png)
+![ONS Q&A - Pergunta 1](img/ons4_Q&A.3.png)
+![ONS Q&A - Pergunta 1](img/ons4_Q&A.4.png)
+![ONS Q&A - Pergunta 1](img/ons4_Q&A.5.png)
+![ONS Q&A - Pergunta 1](img/ons4_Q&A.6.png)
 
 #### Resposta:
 
