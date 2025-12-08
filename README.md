@@ -49,7 +49,7 @@ Fornecer dados para dashboards, relatórios e modelos analíticos
 
 Exemplo de tabelas: ons.dados.capacidade_geracao
 
-Fluxo de Dados (Pipeline)
+### Fluxo de Dados (Pipeline)
 
 O processo de ingestão e persistência segue um padrão Flat, adaptado para o contexto:
 
@@ -73,7 +73,6 @@ O processo de ingestão e persistência segue um padrão Flat, adaptado para o c
     └────────┬────────────────┘
              │ [2. TRANSFORMAÇÃO E VALIDAÇÃO]
              │ • Aplicação de regras de negócio
-             │ • Enriquecimento (metadados)
              │ • Validação de qualidade
              ▼
     ┌─────────────────────────┐
@@ -84,7 +83,6 @@ O processo de ingestão e persistência segue um padrão Flat, adaptado para o c
     │  • Qualidade garantida  │
     └────────┬────────────────┘
              │ [3. CONSUMO]
-             │ • Dashboards
              │ • Relatórios
              │ • Analytics
              ▼
