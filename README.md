@@ -89,3 +89,22 @@ O processo de ingestão e persistência segue um padrão Flat, adaptado para o c
     ┌─────────────────────────┐
     │  Dashboards/Analytics   │  ← Camadas de Consumo
     └─────────────────────────┘
+
+✅ Pergunta 1: Qual o perfil de usinas e combustíveis foram desativadas após 2000?
+
+    ![](path)
+    ![](path)
+    ![](path)
+    ![](path)
+    ![](path)
+    ![](path)
+
+
+#### Resposta:
+
+Por TIPO DE USINA: TÉRMICA (959 unidades, 6.211 MW), Fotovoltaica (3 unidades, 50 MW). <br>
+Por TIPO DE COMBUSTÍVEL: Óleo Diesel (772 unidades (80%), 2.020 MW (32%)), Gás (64 unidades (7%), 1.513 MW (24%)), Óleo Combustível, Biomassa, Carvão etc.
+
+#### Discussão:
+A desativação concentra-se em usinas térmicas principalmente pelo impacto ambiental pelo uso de combustíveis fósseis.
+
