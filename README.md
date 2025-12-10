@@ -1,6 +1,10 @@
 # MVP - Ciência de Dados e Analytics - PUC-RJ
-# Engenharia de dados <br><br>
-## Aluno: Fabiano da Mata Almeida
+MVP da SPRINT de Engenharia de Dados da pós-graduação em Ciência de Dados e Analytcs da PUC-RJ
+
+## Disciplina: Engenharia de Dados
+
+**Autor:** Fabiano da Mata Almeida  
+**Dataset:** Dados de potência nominal de Unidades Geradoras de Usinas despachadas pelo ONS
 <br>
 
 ## 1. Introdução / Objetivo
