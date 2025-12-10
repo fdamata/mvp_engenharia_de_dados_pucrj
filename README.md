@@ -1,8 +1,20 @@
-# Visão Geral da Arquitetura
+# MVP - Ciência de Dados e Analytics - PUC-RJ
+# Engenharia de dados <br><br>
+## Aluno: Fabiano da Mata Almeida
+<br>
+
+## 1. Introdução / Objetivo
 
 Este projeto implementa uma solução de ingestão e persistência de dados provenientes da base de dados abertos do Operador Nacional do Sistema Elétrico (ONS), utilizando a plataforma Databricks e seguindo as melhores práticas de engenharia de dados.
 
-Estrutura do Unity Catalog
+O objetivo é responder algumas perguntas, quem incluem: 
+- Quais os tipos de usinas e combustíveis foram desativadas após 2000? 
+- Quais os tipos de usinas e combustíveis mais cresceram desde 1990? 
+- Evolução das participação de combustíveis renováveis/não renováveis ao longo das décadas?
+- Qual a potência média das usinas ativas e desativadas?
+- Existe relação entre idade da usina e desativação?
+
+## 2. Preparação do Ambiente
 
 A arquitetura utiliza o Unity Catalog do Databricks para governança e organização dos dados, com a seguinte estrutura hierárquica:
 
@@ -12,9 +24,9 @@ Unity Catalog
         ├── Schema: staging
         └── Schema: dados
 
-Schemas e suas Finalidades
+### Schemas e suas Finalidades
 
-1. Schema de Staging (staging)
+2.1. Schema de Staging (staging)
 
 Propósito: Área temporária para armazenamento inicial dos dados brutos coletados da base do ONS.<br>
 Natureza: Transiente e volátil.<br>
@@ -31,7 +43,7 @@ Facilitar troubleshooting e auditoria de dados originais
 
 Exemplo de tabelas: ons.staging.capacidade_geracao
 
-2. Schema de Dados (dados)
+2.2. Schema de Dados (dados)
 
 Propósito: Camada de persistência para dados validados, transformados e prontos para consumo.
 
@@ -49,7 +61,40 @@ Fornecer dados para dashboards, relatórios e modelos analíticos
 
 Exemplo de tabelas: ons.dados.capacidade_geracao
 
-### Fluxo de Dados (Pipeline)
+![ONS - Catalogo](img/ons_catalog.png)
+
+## 3. Coleta de Dados
+
+Origem: bucket público do ONS (s3a://ons-aws-prod-opendata/dataset/capacidade-geracao), formato Parquet, licença CC-BY.
+Script: ons2_buscadados.py.
+Snippet:
+
+        source_dir = "s3a://ons-aws-prod-opendata/dataset/capacidade-geracao"
+        target_dir = "/Volumes/ons/staging/capacidade_geracao"
+        files = dbutils.fs.ls(source_dir)
+        for f in files:
+            if f.name.endswith(".parquet"):
+                dbutils.fs.cp(f.path, f"{target_dir}/{f.name}")
+
+## 4. Importação e Modelagem
+
+Script: ons3_lerdadosbaixados.py.
+Após download dos dados em staging, realizou-se a importação. Foram realizadas transformações para padronização (trim, upper), conversão de tipos e gravação como Delta.
+Snippet:
+
+        cap_df = spark.read.format("parquet").load(f"{cap_path}/*.parquet")
+        cap_df = cap_df.withColumn('id_subsistema', upper(trim(col('id_subsistema')))) \
+                    .withColumn('dat_desativacao', try_to_timestamp(col('dat_desativacao'))) \
+                    .withColumn('val_potenciaefetiva', col('val_potenciaefetiva').cast('double'))
+        cap_df.write.format("delta").mode("overwrite").saveAsTable("ons.dados.capacidade_geracao")
+
+![ONS - Exemplo de Dados](img/ons_sampledata.png)
+
+## 5. Dados
+
+### 5.1. Linhagem
+
+O fluxo simplificado da linhagem: origem S3 → staging → DataFrame Spark → Delta Table.
 
 O processo de ingestão e persistência segue um padrão Flat, adaptado para o contexto:
 
@@ -89,22 +134,59 @@ O processo de ingestão e persistência segue um padrão Flat, adaptado para o c
     ┌─────────────────────────┐
     │  Dashboards/Analytics   │  ← Camadas de Consumo
     └─────────────────────────┘
-## Evidências das etapas do ETL
 
-### Preparação do ambiente
+ A extração ocorreu em Dez/2025.
+
+Telas da linhagem dos dados: representação gráfica e tabelas down e upstream.
+
+ ![ONS - Linhagem - Graph](img/ons_lineage_graph.png)
+ ![ONS - Linhagem - UP](img/ons_lineage_up.png)
+ ![ONS - Linhagem - DOWN - Tabelas](img/ons_lineage_down_tables.png)
+ ![ONS - Linhagem - DOWN](img/ons_lineage_down.png)
+
+### 5.2. Qualidade
+
+Os dados utilizados, obtidos de uma base pública do ONS, que é curada e mantida por um órgão oficial. Acredito que por esse motivo, não foram identificados problemas relevantes de qualidade, como inconsistências, duplicidades ou valores fora de domínio. 
+
+As verificações realizadas (estatísticas descritivas, contagem de nulos e análise de tipos) confirmaram que os atributos estão consistentes com o dicionário de dados disponibilizado pelo ONS. 
+
+Assim, não houve necessidade de aplicar tratamentos adicionais além das conversões de tipo e ajustes de formato previstos no pipeline.
+
+Código de verificação de qualidade
+
+![ONS - Qualidade - 1/4](img/ons_qualidade_01.png)
+
+Foi possível observar que todos os valores de "count" são os mesmos (5438).
+
+![ONS - Qualidade - 2/4](img/ons_qualidade_02.png)
+
+É possível observar que assim como consta no dicionário de dados, apenas asd colunas da datas de teste e desativação apresentaram valores nuçps, ou seja, não houve informação de teste e ainda constam 4472 usinas ativas.
+
+![ONS - Qualidade - 3/4](img/ons_qualidade_03.png)
+
+Tipos de dados tal como descrito no dicionário de dados.
+
+![ONS - Qualidade - 4/4](img/ons_qualidade_04.png)
+
+## 6. Evidências das etapas do ETL
+
+### 6.1. Preparação do ambiente
 
 ![ONS - Preparação](img/ons1_preparacao.png)
 
-### Busca dos dados na fonte: Download para STAGING
+### 6.2. Busca dos dados na fonte: Download para STAGING
 
 ![ONS - Buscar Dados](img/ons2_buscadados.png)
 
-### Persistência dos dados no UNITY CATALOG
+### 6.3. Persistência dos dados no UNITY CATALOG
 
-![ONS - Unity Catalog - 1/2](img/ons3_lerdadosbaixados.1.png)
-![ONS - Unity Catalog - 2/2](img/ons3_lerdadosbaixados.2.png)
+![ONS - Unity Catalog - 1/3](img/ons3_lerdadosbaixados.1.png)
+![ONS - Unity Catalog - 2/3](img/ons3_lerdadosbaixados.2.png)
+![ONS - Unity Catalog - 3/3](img/ons_catalog.png)
 
-✅ Pergunta 1: Qual o perfil de usinas e combustíveis foram desativadas após 2000?
+## 7. Perguntas e Respostas (Q&A)
+
+### ✅ Pergunta 1: Qual o perfil de usinas e combustíveis foram desativadas após 2000?
 
 ![ONS Q&A - Pergunta 1 - 1/6](img/ons4_Q&A.1.png)
 ![ONS Q&A - Pergunta 1 - 2/6](img/ons4_Q&A.2.png)
@@ -121,7 +203,7 @@ Por TIPO DE COMBUSTÍVEL, a prevalência foram as usinas a Óleo Diesel, com 772
 #### Discussão:
 A desativação concentra-se em usinas térmicas principalmente pelo impacto ambiental pelo uso de combustíveis fósseis.
 
-✅ 2. Quais tipos de usinas e combustíveis mais cresceram após 1990?
+### ✅ 2. Quais tipos de usinas e combustíveis mais cresceram após 1990?
 
 ![ONS Q&A - Pergunta 2 - 1/6](img/ons4_Q&A.7.png)
 ![ONS Q&A - Pergunta 2 - 2/6](img/ons4_Q&A.8.png)
@@ -140,7 +222,7 @@ Consegue-se observar que ainda houve entrada de usinas térmicas com relevante p
 #### Discussão:
 Mostra mudança estrutural: renováveis crescem fortemente após 2010, enquanto térmicas dominaram a década de 2000.
 
-✅ 3. Evolução da participação renovável vs não renovável por década
+### ✅ 3. Evolução da participação renovável vs não renovável por década
 
 ![ONS Q&A - Pergunta 3 - 1/3](img/ons4_Q&A.13.png)
 ![ONS Q&A - Pergunta 3 - 3/3](img/ons4_Q&A.14.png)
@@ -164,7 +246,7 @@ A curva das renováveis mostra um padrão típico de transição energética:
 - Fase de diversificação (1990–2010): entrada de novas tecnologias (eólica, solar).
 - Fase de maturidade (após 2010): expansão continua, mas com inclinação menor, refletindo desafios de integração e políticas mais equilibradas.
 
-✅ 4. Potência média de usinas ativas vs desativadas
+### ✅ 4. Potência média de usinas ativas vs desativadas
 
 ![ONS Q&A - Pergunta 4 - 1/1](img/ons4_Q&A.16.png)
 
@@ -177,7 +259,7 @@ A curva das renováveis mostra um padrão típico de transição energética:
 #### Discussão:
 Unidades menores são mais vulneráveis à desativação, útil para estudos de vida útil e planejamento.
 
-✅ 5. Relação idade vs probabilidade de desativação
+### ✅ 5. Relação idade vs probabilidade de desativação
 
 ![ONS Q&A - Pergunta 5 - 1/3](img/ons4_Q&A.17.png)
 ![ONS Q&A - Pergunta 5 - 2/3](img/ons4_Q&A.18.png)
@@ -198,7 +280,7 @@ Não há evidência de que usinas de maior idade sejam mais propensas à desativ
 
 Esse comportamento não é monotônico, então um modelo linear não explica bem a variação. A maior taxa está concentrada em uma faixa intermediária (20–29 anos), não nas mais velhas.
 
-✅ 6. Concentração de capacidade por agente nos últimos 10 anos
+### ✅ 6. Concentração de capacidade por agente nos últimos 10 anos
 
 ![ONS Q&A - Pergunta 6 - 1/1](img/ons4_Q&A.20.png)
 
@@ -212,7 +294,7 @@ Esse comportamento não é monotônico, então um modelo linear não explica bem
 
 Poucos agentes concentram grande capacidade, importante para análise de dependência e governança.
 
-✅ 7. Tendência de diversificação de combustíveis nas térmicas (Índice de Shannon)
+### ✅ 7. Tendência de diversificação de combustíveis nas térmicas (Índice de Shannon)
 
 ![ONS Q&A - Pergunta 7 - 1/4](img/ons4_Q&A.21.png)
 ![ONS Q&A - Pergunta 7 - 2/4](img/ons4_Q&A.22.png)
@@ -234,12 +316,33 @@ Pico de diversidade em 2010 (1,77), queda em 2020 (1,10). E nos anos 1908 o meno
 - 1980 (0,16) → diversidade mínima, dominância total.
 - 2010 (1,77) → maior diversidade, mix mais equilibrado.
 
-#### Discussão Geral
+## 8. Discussão Geral
 
-Essas análises mostram:
+As análises realizadas permitem compreender tendências importantes na evolução do parque gerador brasileiro:
 
-- Desativações: foco em térmicas fósseis e pequenas unidades.
-- Expansão: renováveis dominam após 2010; térmicas foram relevantes nos anos 2000.
-- Sustentabilidade: participação renovável recupera após queda nos anos 2000.
-- Perfil tecnológico: eólica e solar correlacionadas com anos recentes.
-- Diversidade: maior nos anos 2010, depois consolidação.
+
+Desativações: Observou-se que as usinas desativadas após 2000 concentram-se em térmicas fósseis e unidades de menor porte. Esse padrão indica vulnerabilidade das plantas menos eficientes e dependentes de combustíveis não renováveis.
+
+
+Expansão: A partir de 2010, fontes renováveis — especialmente eólica e solar — dominaram a expansão, enquanto as térmicas tiveram papel relevante nos anos 2000, refletindo políticas energéticas e conjunturas econômicas da época.
+
+
+Sustentabilidade: A participação das renováveis apresentou queda nos anos 2000, mas recuperou-se fortemente na década seguinte, sinalizando uma mudança estrutural em direção à matriz limpa.
+
+
+Perfil tecnológico: As tecnologias eólica e fotovoltaica estão fortemente associadas aos anos mais recentes, evidenciando inovação e diversificação tecnológica.
+
+
+Diversidade: A diversidade de combustíveis atingiu seu ápice nos anos 2010, seguida por uma fase de consolidação, indicando amadurecimento do setor e maior previsibilidade na composição da matriz.
+
+
+Esses achados reforçam a importância de políticas que incentivem fontes renováveis e a necessidade de monitorar a concentração de agentes geradores para garantir equilíbrio competitivo e segurança energética.
+
+## 9. Autoavaliação
+
+Este trabalho representou um desafio significativo, principalmente pelo uso do Databricks — uma ferramenta completamente nova para mim. Nunca havia tido contato com essa plataforma, o que exigiu um esforço inicial para compreender sua lógica e recursos. Além disso, a formulação das questões foi complexa, pois a base de dados era inédita e demandou exploração cuidadosa para identificar padrões relevantes.
+Apesar dessas dificuldades, considero que os objetivos foram integralmente atendidos. O aprendizado adquirido sobre engenharia de dados em nuvem, manipulação e integração com ferramentas analíticas foi extremamente valioso. Em muitos momentos, senti-me como um verdadeiro bandeirante, desbravando territórios desconhecidos e construindo caminhos para análises robustas.
+
+Para trabalhos futuros, vislumbro ampliar o escopo para incluir dados de geração horária, métricas de sustentabilidade e integração com modelos preditivos.
+
+Em síntese, este projeto cumpriu seu papel acadêmico: proporcionou aprendizado prático, consolidou conceitos teóricos e abriu novas perspectivas para estudos avançados em gestão e planejamento energético.
