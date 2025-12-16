@@ -150,7 +150,7 @@ Telas da linhagem dos dados: representação gráfica e tabelas down e upstream.
 
 ### 5.2. Qualidade
 
-Os dados utilizados, obtidos de uma base pública do ONS, que é curada e mantida por um órgão oficial. Acredito que por esse motivo, não foram identificados problemas relevantes de qualidade, como inconsistências, duplicidades ou valores fora de domínio. 
+Os dados utilizados, obtidos de uma base pública do ONS, que é curada e mantida por um órgão oficial. Acredito que por esse motivo não foram identificados problemas relevantes de qualidade, como inconsistências, duplicidades ou valores fora de domínio. 
 
 As verificações realizadas (estatísticas descritivas, contagem de nulos e análise de tipos) confirmaram que os atributos estão consistentes com o dicionário de dados disponibilizado pelo ONS. 
 
@@ -164,7 +164,7 @@ Foi possível observar que todos os valores de "count" são os mesmos (5438).
 
 ![ONS - Qualidade - 2/4](img/ons_qualidade_02.png)
 
-É possível observar que assim como consta no dicionário de dados, apenas asd colunas da datas de teste e desativação apresentaram valores nuçps, ou seja, não houve informação de teste e ainda constam 4472 usinas ativas.
+É possível observar que assim como consta no dicionário de dados, apenas as colunas da datas de teste e desativação apresentaram valores nulos, ou seja, não houve informação de teste e ainda constam 4472 usinas ativas.
 
 ![ONS - Qualidade - 3/4](img/ons_qualidade_03.png)
 
@@ -309,7 +309,7 @@ Poucos agentes concentram grande capacidade, importante para análise de depend�
 
 O índice de Shannon representa a diversidade do mix de combustíveis nas térmicas ao longo das décadas.
 
-Pico de diversidade em 2010 (1,77), queda em 2020 (1,10). E nos anos 1908 o menos valor, representando a menor diversificação.
+Pico de diversidade em 2010 (1,77), queda em 2020 (1,10). E nos anos 1980 o menos valor, representando a menor diversificação.
 
 #### Discussão:
 
