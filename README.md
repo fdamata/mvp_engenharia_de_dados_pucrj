@@ -16,7 +16,7 @@ O objetivo é responder algumas perguntas, quem incluem:
 - Quais os tipos de usinas e combustíveis mais cresceram desde 1990? 
 - Evolução das participação de combustíveis renováveis/não renováveis ao longo das décadas?
 - Qual a potência média das usinas ativas e desativadas?
-- Existe relação entre idade da usina e desativação?
+- Existe relação entre idade da usina e desativação? 
 
 ## 2. Preparação do Ambiente
 
